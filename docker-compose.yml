@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: school
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: school_erp
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://school:secret@db:5432/school_erp
+      JWT_SECRET: super-secret-key-change-me
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install --prefix apps/web && npm run dev --prefix apps/web"
+    volumes:
+      - ./apps/web:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pg_data:

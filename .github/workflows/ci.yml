@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---------- Backend ----------
+      - name: Set up Node (api)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install backend deps
+        working-directory: ./apps/api
+        run: npm ci
+
+      - name: Build backend
+        working-directory: ./apps/api
+        run: npm run build
+
+      - name: Run backend tests
+        working-directory: ./apps/api
+        run: npm test
+
+      # ---------- Frontend ----------
+      - name: Set up Node (web)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install frontend deps
+        working-directory: ./apps/web
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./apps/web
+        run: npm run build
+
+  # Uncomment & fill in your Render/Railway/Vercel secrets to enable auto‑deploy
+  # deploy:
+  #   needs: build-test
+  #   if: github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy to Render (example)
+  #       uses: render-examples/render-deploy@v1
+  #       with:
+  #         apiKey: ${{ secrets.RENDER_API_KEY }}
+  #         serviceId: ${{ secrets.RENDER_SERVICE_ID }}

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>School ERP – Teacher Dashboard (Demo)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tailwind CDN for quick styling (no build step) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* niewielki custom tweak */
+        .card { @apply bg-white rounded-lg shadow-md p-4; }
+        .btn-primary { @apply bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded; }
+        .btn-danger  { @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded; }
+        .btn-success { @apply bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded; }
+    </style>
+</head>
+<body class="bg-gray-50 flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-indigo-800 text-white p-4">
+        <h2 class="text-xl font-bold mb-6">School ERP</h2>
+        <nav class="space-y-2">
+            <a href="#" class="block py-2 px-3 rounded hover:bg-indigo-700">🏠 Dashboard</a>
+            <a href="#" class="block py-2 px-3 rounded hover:bg-indigo-700">📅 Timetable</a>
+            <a href="#" class="block py-2 px-3 rounded hover:bg-indigo-700">📚 Attendance</a>
+            <a href="#" class="block py-2 px-3 rounded hover:bg-indigo-700">📝 Assignments</a>
+            <a href="#" class="block py-2 px-3 rounded hover:bg-indigo-700">💰 Fees</a>
+            <a href="#" class="block py-2 px-3 rounded hover:bg-indigo-700">📢 Messages</a>
+            <a href="#" class="block py-2 px-3 rounded hover:bg-indigo-700">📊 Reports</a>
+        </nav>
+        <hr class="my-4 border-indigo-700">
+        <p class="text-sm">Logged in as: <span class="font-medium">Priya Sharma (Maths)</span></p>
+        <button id="logoutBtn" class="w-full btn-danger mt-2">Logout</button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 overflow-auto">
+        <header class="mb-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Teacher Dashboard</h1>
+            <div class="flex space-x-3">
+                <span id="dateToday" class="text-gray-600"></span>
+                <button id="refreshBtn" class="btn-primary">Refresh</button>
+            </div>
+        </header>
+
+        <!-- Today's Classes -->
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-3">आज की कक्षाएँ</h2>
+            <div id="classList" class="space-y-3">
+                <!-- क्लास कार्ड्स यहाँ JavaScript द्वारा डायनामिकली जोड़े जाएंगे -->
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="card">
+                <h3 class="font-semibold mb-2">📝 New Assignment</h3>
+                <p class="text-sm text-gray-600">Create and publish homework for any class.</p>
+                <button class="btn-success mt-2 w-full">Create</button>
+            </div>
+            <div class="card">
+                <h3 class="font-semibold mb-2">📊 View Reports</h3>
+                <p class="text-sm text-gray-600">Attendance, performance, fee reports.</p>
+                <button class="btn-primary mt-2 w-full">Open Reports</button>
+            </div>
+            <div class="card">
+                <h3 class="font-semibold mb-2">💬 Send Message</h3>
+                <p class="text-sm text-gray-600">Notify students or parents instantly.</p>
+                <button class="btn-primary mt-2 w-full">Compose</button>
+            </div>
+        </section>
+
+        <!-- Notice Board -->
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-3">📢 Notice Board</h2>
+            <div id="noticeBoard" class="space-y-2 bg-gray-100 rounded p-4">
+                <!-- notices will be injected here -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ------------------- Mock Data -------------------
+        const mockUser = {
+            name: "Priya Sharma",
+            subject: "Mathematics",
+            id: 101
+        };
+
+        const mockClasses = [
+            { id: 1, name: "Grade 10 – Section A", time: "08:00‑09:00", room: "Room 101" },
+            { id: 2, name: "Grade 9 – Section B", time: "09:10‑10:10", room: "Room 102" },
+            { id: 3, name: "Grade 11 – Section C", time: "10:20‑11:20", room: "Room 103" }
+        ];
+
+        const mockNotices = [
+            "Tomorrow is a holiday – Independence Day celebration.",
+            "Please submit the September project by 30th Sep.",
+            "Parent‑Teacher meeting scheduled on 5th Oct, 4 PM."
+        ];
+
+        // ------------------- Helper Functions -------------------
+        function formatDate(date) {
+            return date.toLocaleDateString('hi-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function renderClassList() {
+            const container = document.getElementById('classList');
+            container.innerHTML = '';
+            mockClasses.forEach(cls => {
+                const card = document.createElement('div');
+                card.className = 'card border-l-4 border-indigo-500';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-medium">${cls.name}</h4>
+                            <p class="text-sm text-gray-500">${cls.time} • ${cls.room}</p>
+                        </div>
+                        <button class="btn-success btn-sm mt-2"
+                                data-class-id="${cls.id}"
+                                data-class-name="${cls.name}"
+                                data-class-time="${cls.time}"
+                                data-class-room="${cls.room}">
+                            Mark Attendance
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            // attach click listeners to all attendance buttons
+            document.querySelectorAll('[data-class-id]').forEach(btn => {
+                btn.addEventListener('click', handleMarkAttendance);
+            });
+        }
+
+        function handleMarkAttendance(e) {
+            const btn = e.target;
+            const classId = btn.dataset.classId;
+            const className = btn.dataset.className;
+            // Simple mock – in real app you would call POST /api/attendance
+            if (confirm(`क्या आप "${className}" की उपस्थिति दर्ज़ करना चाहते हैं?`)) {
+                // pretend request
+                btn.disabled = true;
+                btn.textContent = "Saved!";
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = "Mark Attendance";
+                }, 1500);
+                alert(`✅ ${className} की उपस्थिति सफलतापूर्वक रिकॉर्ड की गई।`);
+            }
+        }
+
+        function renderNotices() {
+            const board = document.getElementById('noticeBoard');
+            board.innerHTML = '';
+            mockNotices.forEach(notice => {
+                const p = document.createElement('p');
+                p.className = 'text-sm text-gray-700';
+                p.textContent = notice;
+                board.appendChild(p);
+            });
+        }
+
+        // ------------------- Event Listeners -------------------
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm('क्या आप वाक़ई लॉगआउट करना चाहते हैं?')) {
+                // In a real app you would clear token & redirect to login page
+                window.location.href = 'login.html'; // or just reload
+            }
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            renderClassList();
+            renderNotices();
+            document.getElementById('dateToday').textContent = formatDate(new Date());
+        });
+
+        // ------------------- Initial Load -------------------
+        document.getElementById('dateToday').textContent = formatDate(new Date());
+        renderClassList();
+        renderNotices();
+    </script>
+</body>
+</html>

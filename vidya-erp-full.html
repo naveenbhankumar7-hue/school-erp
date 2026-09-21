@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vidya ERP — School Management Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1E2A38; --ink-soft:#4A5A6A; --paper:#EEF3EC; --paper-raised:#FFFFFF;
+    --rule:#C7D2C5; --marigold:#DD8C34; --marigold-deep:#B4701F; --maroon:#A33B3B;
+    --sage-deep:#4C7A5D; --sage-tint:#DCE8DD; --blue:#5B7DB1;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#EDEFE9; --ink-soft:#B7C2BB; --paper:#16201B; --paper-raised:#1E2B23;
+      --rule:#33443A; --sage-tint:#233229;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#EDEFE9; --ink-soft:#B7C2BB; --paper:#16201B; --paper-raised:#1E2B23;
+    --rule:#33443A; --sage-tint:#233229;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); height:100%;
+    font-family:'Work Sans',system-ui,sans-serif; font-size:15px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.slab{font-family:'Zilla Slab',Georgia,serif;}
+  button{font-family:inherit;}
+
+  /* ===== Login / role select ===== */
+  #screen-login{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; padding:40px 20px;
+  }
+  .login-brand{display:flex; align-items:center; gap:12px; margin-bottom:6px;}
+  .brand-mark{
+    width:44px; height:44px; border-radius:10px; background:var(--marigold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Zilla Slab',serif; font-weight:700; color:#1E2A38; font-size:22px;
+  }
+  .login-brand h1{font-size:26px; margin:0; font-weight:600;}
+  .login-brand h1 span{color:var(--marigold-deep);}
+  .login-sub{color:var(--ink-soft); font-size:14px; margin:0 0 32px;}
+  .role-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; width:100%; max-width:420px;}
+  .role-card{
+    background:var(--paper-raised); border:1.5px solid var(--rule); border-radius:12px;
+    padding:20px 14px; text-align:center; cursor:pointer;
+  }
+  .role-card:hover{border-color:var(--marigold);}
+  .role-ico{font-size:26px; margin-bottom:8px;}
+  .role-name{font-weight:600; font-size:14.5px;}
+  .role-desc{font-size:11.5px; color:var(--ink-soft); margin-top:3px;}
+  .login-note{margin-top:28px; font-size:12px; color:var(--ink-soft); text-align:center; max-width:380px;}
+
+  /* ===== App shell ===== */
+  #screen-app{display:none;}
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+    border-bottom:2px solid var(--ink); background:var(--paper-raised);
+    position:sticky; top:0; z-index:20;
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .brand-mark{width:32px; height:32px; font-size:16px; border-radius:7px;}
+  .brand-name{font-family:'Zilla Slab',serif; font-weight:600; font-size:18px;}
+  .brand-name span{color:var(--marigold-deep);}
+  .top-right{display:flex; align-items:center; gap:10px;}
+  .role-pill{
+    font-size:12px; border:1px solid var(--rule); border-radius:20px; padding:5px 12px; color:var(--ink-soft);
+  }
+  .switch-btn{
+    font-size:12px; border:1px solid var(--rule); background:var(--paper-raised); color:var(--ink-soft);
+    border-radius:20px; padding:5px 12px; cursor:pointer;
+  }
+  .switch-btn:hover{border-color:var(--marigold); color:var(--ink);}
+  .avatar{
+    width:30px; height:30px; border-radius:50%; background:var(--sage-tint);
+    border:1.5px solid var(--sage-deep); display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:12px; color:var(--sage-deep);
+  }
+
+  .shell{display:flex; min-height:calc(100vh - 63px);}
+  .sidebar{width:200px; flex-shrink:0; background:var(--paper-raised); border-right:1px solid var(--rule); padding:18px 0;}
+  .side-section{margin-bottom:22px;}
+  .side-label{font-size:11px; letter-spacing:.03em; color:var(--ink-soft); padding:0 18px; margin-bottom:6px;}
+  .side-link{
+    display:flex; align-items:center; gap:10px; padding:9px 18px; font-size:14px;
+    color:var(--ink-soft); border-left:3px solid transparent; cursor:pointer;
+  }
+  .side-link:hover{background:var(--sage-tint); color:var(--ink);}
+  .side-link.active{border-left:3px solid var(--marigold); background:var(--sage-tint); color:var(--ink); font-weight:600;}
+  .side-ico{width:18px; text-align:center;}
+
+  main{flex:1; padding:22px 24px 60px; max-width:980px;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .page-head{margin-bottom:20px;}
+  .page-head h1{font-size:24px; margin:0 0 4px; font-weight:600;}
+  .page-head p{margin:0; color:var(--ink-soft); font-size:13.5px;}
+
+  .section{background:var(--paper-raised); border:1px solid var(--rule); border-radius:10px; padding:18px 20px; margin-bottom:18px;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; gap:10px; flex-wrap:wrap;}
+  .section-head h2{font-size:16.5px; margin:0; font-weight:600;}
+  .section-head .muted{font-size:12px; color:var(--ink-soft);}
+
+  .stat-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:18px;}
+  .stat{flex:1; min-width:130px; background:var(--paper-raised); border:1px solid var(--rule); border-radius:10px; padding:14px 16px; position:relative; overflow:hidden;}
+  .stat::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px;}
+  .stat.c1::before{background:var(--marigold);} .stat.c2::before{background:var(--sage-deep);}
+  .stat.c3::before{background:var(--maroon);} .stat.c4::before{background:var(--blue);}
+  .stat .num{font-family:'Zilla Slab',serif; font-size:26px; font-weight:700; line-height:1;}
+  .stat .lbl{font-size:12px; color:var(--ink-soft); margin-top:5px;}
+
+  .cols{display:grid; grid-template-columns:1.2fr 1fr; gap:18px;}
+  @media (max-width:760px){ .cols{grid-template-columns:1fr;} .role-grid{grid-template-columns:1fr 1fr;} main{padding:16px;} .sidebar{width:170px;} }
+
+  /* generic table */
+  table.grid{width:100%; border-collapse:collapse; font-size:13.5px;}
+  table.grid th{text-align:left; font-size:11px; color:var(--ink-soft); font-weight:600; padding:7px 8px; border-bottom:2px solid var(--ink);}
+  table.grid td{padding:8px; border-bottom:1px solid var(--rule); vertical-align:middle;}
+  table.grid input[type=number]{width:60px; border:1px solid var(--rule); border-radius:5px; padding:5px 6px; font-family:inherit; font-size:13px; background:var(--paper); color:var(--ink);}
+
+  .badge{font-size:11px; padding:3px 10px; border-radius:12px; font-weight:600; display:inline-block;}
+  .b-green{background:var(--sage-tint); color:var(--sage-deep);}
+  .b-red{background:#F3DFDD; color:var(--maroon);}
+  .b-amber{background:#FBEAD3; color:var(--marigold-deep);}
+  .b-blue{background:#DFE6F0; color:var(--blue);}
+  :root[data-theme="dark"] .b-red, @media (prefers-color-scheme:dark){.b-red{background:#3A2323;}}
+
+  .btn{border:none; border-radius:7px; padding:6px 13px; font-size:12.5px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--marigold); color:#1E2A38;}
+  .btn-primary:active{background:var(--marigold-deep);}
+  .btn-ghost{background:transparent; border:1px solid var(--rule); color:var(--ink-soft);}
+  .btn-ghost:hover{border-color:var(--ink); color:var(--ink);}
+  .btn-sm{padding:4px 10px; font-size:11.5px;}
+
+  .chip-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .chip{border:1px solid var(--rule); border-radius:20px; padding:6px 14px; font-size:13px; cursor:pointer; background:var(--paper-raised); color:var(--ink-soft);}
+  .chip.active{background:var(--ink); color:var(--paper-raised); border-color:var(--ink);}
+
+  .roster-row{display:flex; align-items:center; justify-content:space-between; padding:9px 2px; border-bottom:1px solid var(--rule); font-size:14px;}
+  .roster-row:last-child{border-bottom:none;}
+  .rno{color:var(--ink-soft); width:26px; font-size:12px;}
+  .roster-name{flex:1;}
+  .att-toggle{display:flex; gap:6px;}
+  .att-btn{width:28px; height:28px; border-radius:7px; border:1px solid var(--rule); background:var(--paper-raised); cursor:pointer; font-size:12.5px; font-weight:700; color:var(--ink-soft);}
+  .att-btn.p.on{background:var(--sage-deep); border-color:var(--sage-deep); color:#fff;}
+  .att-btn.a.on{background:var(--maroon); border-color:var(--maroon); color:#fff;}
+
+  .hw-item{display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--rule);}
+  .hw-item:last-child{border-bottom:none;}
+  .hw-check{width:19px; height:19px; border:1.5px solid var(--rule); border-radius:5px; margin-top:2px; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px;}
+  .hw-check.done{background:var(--sage-deep); border-color:var(--sage-deep); color:#fff;}
+  .hw-title{font-size:14px; font-weight:600;}
+  .hw-meta{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  .notice{padding:10px 0; border-bottom:1px solid var(--rule);}
+  .notice:last-child{border-bottom:none;}
+  .notice-top{display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); margin-bottom:3px;}
+  .notice-tag{color:var(--maroon); font-weight:600;}
+  .notice-title{font-size:14px; font-weight:600;}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; color:var(--ink-soft); margin-bottom:4px;}
+  .field input, .field select, .field textarea{
+    width:100%; border:1px solid var(--rule); border-radius:7px; padding:8px 10px;
+    font-family:inherit; font-size:13.5px; background:var(--paper); color:var(--ink);
+  }
+  .field-row{display:flex; gap:10px;}
+  .field-row .field{flex:1;}
+
+  footer.note{text-align:center; font-size:12px; color:var(--ink-soft); padding:20px 0 10px;}
+  .empty{font-size:13px; color:var(--ink-soft); padding:10px 0;}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN / ROLE SELECT ============ -->
+<div id="screen-login">
+  <div class="login-brand">
+    <div class="brand-mark">V</div>
+    <h1>Vidya <span>ERP</span></h1>
+  </div>
+  <p class="login-sub">एक software, पूरा school — पोर्टल चुनें</p>
+  <div class="role-grid">
+    <div class="role-card" onclick="enterApp('admin')">
+      <div class="role-ico">🏫</div>
+      <div class="role-name">Admin</div>
+      <div class="role-desc">Admissions, fees, HR</div>
+    </div>
+    <div class="role-card" onclick="enterApp('teacher')">
+      <div class="role-ico">📘</div>
+      <div class="role-name">Teacher</div>
+      <div class="role-desc">Attendance, marks, homework</div>
+    </div>
+    <div class="role-card" onclick="enterApp('parent')">
+      <div class="role-ico">👪</div>
+      <div class="role-name">Parent</div>
+      <div class="role-desc">Child's progress, fees</div>
+    </div>
+    <div class="role-card" onclick="enterApp('student')">
+      <div class="role-ico">🎒</div>
+      <div class="role-name">Student</div>
+      <div class="role-desc">Timetable, homework, results</div>
+    </div>
+  </div>
+  <p class="login-note">Demo prototype — सभी 4 portals एक ही shared data पर चलते हैं। Admin की fee update parent screen पर दिखेगी, teacher के marks student के report card में दिखेंगे। Data सिर्फ इस browser में रहता है।</p>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div id="screen-app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">V</div>
+      <div class="brand-name">Vidya <span>ERP</span></div>
+    </div>
+    <div class="top-right">
+      <span class="role-pill" id="role-pill-label">Teacher Portal</span>
+      <button class="switch-btn" onclick="goLogin()">Switch portal</button>
+      <div class="avatar" id="avatar-label">SM</div>
+    </div>
+  </div>
+
+  <div class="shell">
+    <nav class="sidebar" id="sidebar"></nav>
+    <main id="main-content"></main>
+  </div>
+</div>
+
+<script>
+/* ============ SHARED STATE ============ */
+const STORAGE_KEY = 'vidya_erp_demo_state_v1';
+const roleMeta = {
+  admin:   {label:'Admin Portal',   avatar:'AD'},
+  teacher: {label:'Teacher Portal', avatar:'SM'},
+  parent:  {label:'Parent Portal',  avatar:'RK'},
+  student: {label:'Student Portal', avatar:'AR'}
+};
+
+const defaultState = {
+  students: [
+    {id:1, name:"Aarav Mehta",   cls:"VIII-B", fee:18000, feePaid:false, ut2:22, hwDone:true},
+    {id:2, name:"Diya Kapoor",   cls:"VIII-B", fee:18000, feePaid:true,  ut2:18, hwDone:true},
+    {id:3, name:"Kabir Singh",   cls:"VIII-B", fee:18000, feePaid:false, ut2:25, hwDone:false},
+    {id:4, name:"Ananya Rao",    cls:"VIII-B", fee:18000, feePaid:true,  ut2:20, hwDone:true},
+    {id:5, name:"Vivaan Joshi",  cls:"VIII-B", fee:18000, feePaid:false, ut2:15, hwDone:false},
+    {id:6, name:"Ishaan Verma",  cls:"VIII-B", fee:18000, feePaid:true,  ut2:23, hwDone:true},
+    {id:7, name:"Myra Nair",     cls:"VIII-B", fee:18000, feePaid:true,  ut2:19, hwDone:true},
+    {id:8, name:"Reyansh Gupta", cls:"VIII-B", fee:18000, feePaid:false, ut2:24, hwDone:false},
+    {id:9, name:"Saanvi Iyer",   cls:"VIII-B", fee:18000, feePaid:true,  ut2:21, hwDone:true},
+    {id:10,name:"Arjun Malhotra",cls:"VIII-B", fee:18000, feePaid:false, ut2:17, hwDone:true}
+  ],
+  attendanceToday: {1:'p',2:'p',3:'a',4:'p',5:'p',6:'p',7:'a',8:'p',9:'p',10:'p'},
+  admissions: [
+    {id:1, name:"Neha Thakur", cls:"Nursery", status:"New"},
+    {id:2, name:"Rohan Das",   cls:"VI",      status:"Under Review"},
+    {id:3, name:"Priya Menon", cls:"IX",      status:"New"},
+    {id:4, name:"Sameer Khan", cls:"III",     status:"Approved"}
+  ],
+  staff: [
+    {id:1, name:"Mrs. S. Sharma", role:"Maths Teacher", leave:"Pending"},
+    {id:2, name:"Mr. R. Kulkarni", role:"Sports Teacher", leave:"None"},
+    {id:3, name:"Ms. P. Fernandes", role:"Librarian", leave:"Pending"},
+    {id:4, name:"Mr. A. Bose", role:"Lab Assistant", leave:"None"}
+  ],
+  notices: [
+    {tag:"URGENT", title:"PTM rescheduled to 27 Sept, 10 AM", date:"Today"},
+    {tag:"Circular", title:"Half-yearly exam datesheet released", date:"Yesterday"},
+    {tag:"Reminder", title:"Submit lesson plans for Oct by 25th", date:"2 days ago"}
+  ]
+};
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.warn('storage read failed', e); }
+  return JSON.parse(JSON.stringify(defaultState));
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.warn('storage write failed', e); }
+}
+let state = loadState();
+let currentRole = null;
+let activeTab = null;
+
+/* ============ NAV ============ */
+function enterApp(role){
+  currentRole = role;
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-app').style.display = 'block';
+  document.getElementById('role-pill-label').textContent = roleMeta[role].label;
+  document.getElementById('avatar-label').textContent = roleMeta[role].avatar;
+  renderSidebar(role);
+}
+function goLogin(){
+  document.getElementById('screen-app').style.display = 'none';
+  document.getElementById('screen-login').style.display = 'flex';
+}
+
+const navConfig = {
+  admin: [
+    {group:'DASHBOARD', items:[{id:'overview', ico:'◆', label:"Overview"}]},
+    {group:'ADMISSIONS', items:[{id:'admissions', ico:'✎', label:"Applications"}]},
+    {group:'FINANCE', items:[{id:'fees', ico:'₹', label:"Fee Collection"}]},
+    {group:'HR', items:[{id:'staff', ico:'☰', label:"Staff & Leaves"}]},
+    {group:'CONNECT', items:[{id:'notices-admin', ico:'i', label:"Post Notice"}]}
+  ],
+  teacher: [
+    {group:'DASHBOARD', items:[{id:'overview', ico:'◆', label:"Today's Overview"}]},
+    {group:'CLASSROOM', items:[
+      {id:'attendance', ico:'☰', label:"Attendance"},
+      {id:'homework', ico:'✎', label:"Homework"}
+    ]},
+    {group:'ACADEMICS', items:[{id:'marks', ico:'✓', label:"Marks Entry"}]},
+    {group:'CONNECT', items:[{id:'notices', ico:'i', label:"Notices"}]}
+  ],
+  parent: [
+    {group:'DASHBOARD', items:[{id:'overview', ico:'◆', label:"Child's Overview"}]},
+    {group:'ACADEMICS', items:[{id:'progress', ico:'✓', label:"Attendance & Marks"}]},
+    {group:'FINANCE', items:[{id:'fees-parent', ico:'₹', label:"Fees"}]},
+    {group:'CONNECT', items:[{id:'notices', ico:'i', label:"Notices"}]}
+  ],
+  student: [
+    {group:'DASHBOARD', items:[{id:'timetable', ico:'▤', label:"Timetable"}]},
+    {group:'ACADEMICS', items:[
+      {id:'homework-student', ico:'✎', label:"Homework"},
+      {id:'results', ico:'✓', label:"My Results"}
+    ]},
+    {group:'CONNECT', items:[{id:'notices', ico:'i', label:"Notices"}]}
+  ]
+};
+
+function renderSidebar(role){
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML = '';
+  const groups = navConfig[role];
+  groups.forEach(g=>{
+    const sec = document.createElement('div');
+    sec.className = 'side-section';
+    const lbl = document.createElement('div');
+    lbl.className = 'side-label'; lbl.textContent = g.group;
+    sec.appendChild(lbl);
+    g.items.forEach(item=>{
+      const link = document.createElement('div');
+      link.className = 'side-link';
+      link.dataset.tab = item.id;
+      link.innerHTML = `<span class="side-ico">${item.ico}</span> ${item.label}`;
+      link.onclick = ()=> showTab(role, item.id);
+      sec.appendChild(link);
+    });
+    sb.appendChild(sec);
+  });
+  showTab(role, groups[0].items[0].id);
+}
+
+function showTab(role, tabId){
+  activeTab = tabId;
+  document.querySelectorAll('.side-link').forEach(l=>l.classList.toggle('active', l.dataset.tab===tabId));
+  const main = document.getElementById('main-content');
+  main.innerHTML = renderers[role][tabId]();
+  wireTab(role, tabId);
+}
+function refresh(){ showTab(currentRole, activeTab); }
+
+/* ============ HELPERS ============ */
+function gradeFor(m){ if(m>=23) return 'A1'; if(m>=20) return 'A2'; if(m>=17) return 'B1'; if(m>=13) return 'B2'; return 'C1'; }
+function attCounts(){
+  const vals = Object.values(state.attendanceToday);
+  return {p: vals.filter(v=>v==='p').length, a: vals.filter(v=>v==='a').length};
+}
+function feeStats(){
+  const paid = state.students.filter(s=>s.feePaid).length;
+  return {paid, total: state.students.length, pct: Math.round(paid/state.students.length*100)};
+}
+
+/* ============ RENDERERS ============ */
+const renderers = {
+
+  /* ---------- ADMIN ---------- */
+  admin: {
+    overview(){
+      const f = feeStats();
+      const pendingAdm = state.admissions.filter(a=>a.status!=='Approved').length;
+      const pendingLeave = state.staff.filter(s=>s.leave==='Pending').length;
+      return `
+        <div class="page-head"><h1>Admin Overview</h1><p>School-wide snapshot · Saturday, 20 September 2026</p></div>
+        <div class="stat-row">
+          <div class="stat c1"><div class="num">${state.students.length}</div><div class="lbl">Students on roll</div></div>
+          <div class="stat c2"><div class="num">${f.pct}%</div><div class="lbl">Fees collected (VIII-B)</div></div>
+          <div class="stat c3"><div class="num">${pendingAdm}</div><div class="lbl">Admissions pending</div></div>
+          <div class="stat c4"><div class="num">${pendingLeave}</div><div class="lbl">Staff leave requests</div></div>
+        </div>
+        <div class="section">
+          <div class="section-head"><h2>Today's Attendance — VIII-B</h2><span class="muted">Marked by Mrs. Sharma</span></div>
+          <p style="font-size:13.5px;color:var(--ink-soft);margin:0;">Present: <strong style="color:var(--ink)">${attCounts().p}</strong> · Absent: <strong style="color:var(--ink)">${attCounts().a}</strong> — updates automatically when the teacher marks attendance.</p>
+        </div>`;
+    },
+    admissions(){
+      const rows = state.admissions.map(a=>`
+        <tr>
+          <td>${a.name}</td><td>${a.cls}</td>
+          <td>${statusBadge(a.status)}</td>
+          <td>
+            <select onchange="setAdmissionStatus(${a.id}, this.value)" style="font-size:12.5px;border:1px solid var(--rule);border-radius:6px;padding:4px 6px;background:var(--paper);color:var(--ink);">
+              <option ${a.status==='New'?'selected':''}>New</option>
+              <option ${a.status==='Under Review'?'selected':''}>Under Review</option>
+              <option ${a.status==='Approved'?'selected':''}>Approved</option>
+              <option ${a.status==='Rejected'?'selected':''}>Rejected</option>
+            </select>
+          </td>
+        </tr>`).join('');
+      return `
+        <div class="page-head"><h1>Admission Applications</h1><p>Review and update application status</p></div>
+        <div class="section">
+          <table class="grid"><thead><tr><th>Applicant</th><th>Class</th><th>Status</th><th>Update</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+        </div>`;
+    },
+    fees(){
+      const f = feeStats();
+      const rows = state.students.map(s=>`
+        <tr>
+          <td>${s.name}</td><td>${s.cls}</td><td>₹${s.fee.toLocaleString('en-IN')}</td>
+          <td>${s.feePaid ? badge('Paid','green') : badge('Unpaid','red')}</td>
+          <td>${s.feePaid ? '' : `<button class="btn btn-primary btn-sm" onclick="markFeePaid(${s.id})">Mark Paid</button>`}</td>
+        </tr>`).join('');
+      return `
+        <div class="page-head"><h1>Fee Collection</h1><p>Class VIII-B · Term 2</p></div>
+        <div class="stat-row">
+          <div class="stat c2"><div class="num">${f.paid}/${f.total}</div><div class="lbl">Fees collected</div></div>
+          <div class="stat c3"><div class="num">₹${((f.total-f.paid)*18000).toLocaleString('en-IN')}</div><div class="lbl">Amount pending</div></div>
+        </div>
+        <div class="section">
+          <table class="grid"><thead><tr><th>Student</th><th>Class</th><th>Fee</th><th>Status</th><th></th></tr></thead>
+          <tbody>${rows}</tbody></table>
+        </div>`;
+    },
+    staff(){
+      const rows = state.staff.map(s=>`
+        <tr>
+          <td>${s.name}</td><td>${s.role}</td>
+          <td>${s.leave==='Pending' ? badge('Pending leave','amber') : badge('No pending leave','blue')}</td>
+          <td>${s.leave==='Pending' ? `
+            <button class="btn btn-primary btn-sm" onclick="setLeave(${s.id},'Approved')">Approve</button>
+            <button class="btn btn-ghost btn-sm" onclick="setLeave(${s.id},'Rejected')">Reject</button>` : ''}
+          </td>
+        </tr>`).join('');
+      return `
+        <div class="page-head"><h1>Staff & Leave Requests</h1><p>4 staff on record</p></div>
+        <div class="section">
+          <table class="grid"><thead><tr><th>Name</th><th>Role</th><th>Leave</th><th></th></tr></thead>
+          <tbody>${rows}</tbody></table>
+        </div>`;
+    },
+    'notices-admin'(){
+      const list = state.notices.map(n=>`
+        <div class="notice"><div class="notice-top"><span class="notice-tag">${n.tag}</span><span>${n.date}</span></div><div class="notice-title">${n.title}</div></div>`).join('');
+      return `
+        <div class="page-head"><h1>Post a Notice</h1><p>Visible instantly to teachers, parents and students</p></div>
+        <div class="section">
+          <div class="field-row">
+            <div class="field"><label>Notice title</label><input id="notice-title" placeholder="e.g. School closed for Diwali on 8 Nov"></div>
+            <div class="field" style="max-width:140px;"><label>Tag</label>
+              <select id="notice-tag"><option>Circular</option><option>URGENT</option><option>Reminder</option></select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="postNotice()">Publish Notice</button>
+        </div>
+        <div class="section"><div class="section-head"><h2>Published Notices</h2></div>${list}</div>`;
+    }
+  },
+
+  /* ---------- TEACHER ---------- */
+  teacher: {
+    overview(){
+      const c = attCounts();
+      return `
+        <div class="page-head"><h1>नमस्ते, Mrs. Sharma</h1><p>Class VIII-B (Class Teacher) · 5 periods today</p></div>
+        <div class="stat-row">
+          <div class="stat c1"><div class="num">${Math.round(c.p/state.students.length*100)}%</div><div class="lbl">Today's attendance</div></div>
+          <div class="stat c2"><div class="num">${state.students.filter(s=>s.hwDone).length}/${state.students.length}</div><div class="lbl">Homework reviewed</div></div>
+          <div class="stat c3"><div class="num">${state.staff.filter(s=>s.leave==='Pending').length}</div><div class="lbl">Staff leave pending (admin)</div></div>
+          <div class="stat c4"><div class="num">${state.notices.length}</div><div class="lbl">Active notices</div></div>
+        </div>
+        <div class="section">
+          <div class="section-head"><h2>Today's Timetable</h2><span class="muted">Period 3 in progress</span></div>
+          <div style="display:flex;gap:10px;overflow-x:auto;">
+            ${tt('8:00–8:40','Mathematics','VII-A · Rm 12')}
+            ${tt('8:40–9:20','Mathematics','VIII-B · Rm 12')}
+            ${tt('9:20–10:00','Mathematics','VIII-B · Rm 12', true)}
+            ${tt('10:20–11:00','Free Period','Staff Room')}
+            ${tt('11:00–11:40','Mathematics','IX-C · Rm 09')}
+          </div>
+        </div>`;
+    },
+    attendance(){
+      const rows = state.students.map((s,i)=>`
+        <div class="roster-row">
+          <span class="rno">${String(i+1).padStart(2,'0')}</span>
+          <span class="roster-name">${s.name}</span>
+          <span class="att-toggle">
+            <button class="att-btn p ${state.attendanceToday[s.id]==='p'?'on':''}" onclick="setAttendance(${s.id},'p')">P</button>
+            <button class="att-btn a ${state.attendanceToday[s.id]==='a'?'on':''}" onclick="setAttendance(${s.id},'a')">A</button>
+          </span>
+        </div>`).join('');
+      const c = attCounts();
+      return `
+        <div class="page-head"><h1>Mark Attendance</h1><p>Class VIII-B · Saturday, 20 September 2026</p></div>
+        <div class="section">
+          <div class="chip-row"><div class="chip active">VIII-B</div><div class="chip">VII-A</div><div class="chip">IX-C</div></div>
+          <div>${rows}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--rule);">
+            <span style="font-size:13px;">Present: ${c.p} · Absent: ${c.a}</span>
+            <button class="btn btn-primary" onclick="alert('Attendance saved — visible to admin and parents now.')">Submit Attendance</button>
+          </div>
+        </div>`;
+    },
+    homework(){
+      const rows = state.students.map(s=>`
+        <div class="hw-item">
+          <div class="hw-check ${s.hwDone?'done':''}" onclick="toggleHw(${s.id})">${s.hwDone?'✓':''}</div>
+          <div><div class="hw-title">${s.name} — Algebra Worksheet 4</div><div class="hw-meta">${s.hwDone?'Reviewed':'Pending review'}</div></div>
+        </div>`).join('');
+      return `
+        <div class="page-head"><h1>Homework — Algebra Worksheet 4</h1><p>Class VIII-B · Due yesterday</p></div>
+        <div class="section">${rows}</div>`;
+    },
+    marks(){
+      const rows = state.students.map(s=>`
+        <tr><td>${s.name}</td>
+          <td><input type="number" min="0" max="25" value="${s.ut2}" onchange="setMarks(${s.id}, this.value)"></td>
+          <td>${gradeFor(s.ut2)}</td></tr>`).join('');
+      return `
+        <div class="page-head"><h1>Marks Entry — Unit Test 2</h1><p>Mathematics · Class VIII-B · Out of 25</p></div>
+        <div class="section"><table class="grid"><thead><tr><th>Student</th><th>Marks</th><th>Grade</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    },
+    notices(){ return noticesPanel('Notices for Staff'); }
+  },
+
+  /* ---------- PARENT ---------- */
+  parent: {
+    overview(){
+      const child = state.students.find(s=>s.id===4); // Ananya Rao
+      const att = state.attendanceToday[child.id]==='p' ? 'Present today' : 'Absent today';
+      return `
+        <div class="page-head"><h1>Welcome, Mr. Rao</h1><p>Child: ${child.name} · Class ${child.cls}</p></div>
+        <div class="stat-row">
+          <div class="stat c1"><div class="num">${att.split(' ')[0]}</div><div class="lbl">${att}</div></div>
+          <div class="stat c2"><div class="num">${child.ut2}/25</div><div class="lbl">Latest test score (UT2, Maths)</div></div>
+          <div class="stat ${child.feePaid?'c2':'c3'}"><div class="num">${child.feePaid?'Paid':'Due'}</div><div class="lbl">Term 2 fee (₹${child.fee.toLocaleString('en-IN')})</div></div>
+          <div class="stat c4"><div class="num">${child.hwDone?'Done':'Pending'}</div><div class="lbl">Latest homework</div></div>
+        </div>
+        <div class="section"><div class="section-head"><h2>Recent Notices</h2></div>${noticeList()}</div>`;
+    },
+    progress(){
+      const child = state.students.find(s=>s.id===4);
+      return `
+        <div class="page-head"><h1>Attendance & Marks</h1><p>${child.name} · Class ${child.cls}</p></div>
+        <div class="section">
+          <div class="section-head"><h2>Attendance Today</h2></div>
+          <p style="font-size:14px;">${state.attendanceToday[child.id]==='p' ? badge('Present','green') : badge('Absent','red')} — marked by Mrs. Sharma this morning.</p>
+        </div>
+        <div class="section">
+          <div class="section-head"><h2>Unit Test 2 — Mathematics</h2></div>
+          <p style="font-size:14px;">Score: <strong>${child.ut2}/25</strong> &nbsp; Grade: <strong>${gradeFor(child.ut2)}</strong></p>
+        </div>`;
+    },
+    'fees-parent'(){
+      const child = state.students.find(s=>s.id===4);
+      return `
+        <div class="page-head"><h1>Fees</h1><p>${child.name} · Term 2, 2026–27</p></div>
+        <div class="section">
+          <div class="section-head"><h2>Term 2 Tuition Fee</h2>${child.feePaid?badge('Paid','green'):badge('Unpaid','red')}</div>
+          <p style="font-size:14px;">Amount: ₹${child.fee.toLocaleString('en-IN')}</p>
+          ${child.feePaid ? '<p style="font-size:13px;color:var(--ink-soft);">Received — thank you. Receipt sent to registered email.</p>'
+            : `<button class="btn btn-primary" onclick="markFeePaid(${child.id})">Pay ₹${child.fee.toLocaleString('en-IN')} Now</button>`}
+        </div>`;
+    },
+    notices(){ return noticesPanel('Notices for Parents'); }
+  },
+
+  /* ---------- STUDENT ---------- */
+  student: {
+    timetable(){
+      return `
+        <div class="page-head"><h1>My Timetable</h1><p>Class VIII-B · Saturday, 20 September 2026</p></div>
+        <div class="section">
+          <div style="display:flex;gap:10px;overflow-x:auto;">
+            ${tt('8:00–8:40','English','Rm 14')}
+            ${tt('8:40–9:20','Mathematics','Rm 12', true)}
+            ${tt('9:20–10:00','Science','Lab 2')}
+            ${tt('10:20–11:00','Hindi','Rm 12')}
+            ${tt('11:00–11:40','Social Science','Rm 12')}
+          </div>
+        </div>`;
+    },
+    'homework-student'(){
+      const child = state.students.find(s=>s.id===4);
+      return `
+        <div class="page-head"><h1>My Homework</h1><p>Algebra Worksheet 4 · Mathematics</p></div>
+        <div class="section">
+          <div class="hw-item">
+            <div class="hw-check ${child.hwDone?'done':''}" onclick="toggleHw(${child.id})">${child.hwDone?'✓':''}</div>
+            <div><div class="hw-title">Algebra Worksheet 4</div><div class="hw-meta">${child.hwDone?'Submitted — awaiting review':'Not submitted yet'}</div></div>
+          </div>
+        </div>`;
+    },
+    results(){
+      const child = state.students.find(s=>s.id===4);
+      return `
+        <div class="page-head"><h1>My Results</h1><p>Unit Test 2 · Mathematics</p></div>
+        <div class="section">
+          <table class="grid"><thead><tr><th>Subject</th><th>Marks</th><th>Grade</th></tr></thead>
+          <tbody><tr><td>Mathematics</td><td>${child.ut2}/25</td><td>${gradeFor(child.ut2)}</td></tr></tbody></table>
+        </div>`;
+    },
+    notices(){ return noticesPanel('Notices for Students'); }
+  }
+};
+
+/* ---------- small render helpers ---------- */
+function tt(time, subj, room, now){
+  return `<div style="min-width:126px;border:1px solid var(--rule);border-radius:8px;padding:10px 12px;background:${now?'#FBF0E1':'var(--paper)'};${now?'border-color:var(--marigold);':''}">
+    <div style="font-size:11px;color:var(--ink-soft);">${time}</div>
+    <div style="font-weight:600;font-size:13.5px;margin:3px 0 2px;">${subj}</div>
+    <div style="font-size:11.5px;color:var(--ink-soft);">${room}</div>
+    ${now?'<span style="display:inline-block;margin-top:6px;font-size:10px;padding:2px 7px;border-radius:10px;background:var(--marigold);color:#1E2A38;font-weight:600;">NOW</span>':''}
+  </div>`;
+}
+function badge(text, color){ return `<span class="badge b-${color}">${text}</span>`; }
+function statusBadge(status){
+  const map = {New:'blue', 'Under Review':'amber', Approved:'green', Rejected:'red'};
+  return badge(status, map[status]||'blue');
+}
+function noticeList(){
+  return state.notices.map(n=>`
+    <div class="notice"><div class="notice-top"><span class="notice-tag">${n.tag}</span><span>${n.date}</span></div><div class="notice-title">${n.title}</div></div>`).join('');
+}
+function noticesPanel(title){
+  return `<div class="page-head"><h1>${title}</h1><p>Latest first</p></div><div class="section">${noticeList()}</div>`;
+}
+function wireTab(){ /* reserved for future per-tab JS wiring */ }
+
+/* ---------- state mutators (shared across all portals) ---------- */
+function setAdmissionStatus(id, status){
+  const a = state.admissions.find(x=>x.id===id); a.status = status; saveState(); refresh();
+}
+function markFeePaid(id){
+  const s = state.students.find(x=>x.id===id); s.feePaid = true; saveState(); refresh();
+}
+function setLeave(id, status){
+  const s = state.staff.find(x=>x.id===id); s.leave = status; saveState(); refresh();
+}
+function postNotice(){
+  const title = document.getElementById('notice-title').value.trim();
+  const tag = document.getElementById('notice-tag').value;
+  if(!title){ alert('Please enter a notice title.'); return; }
+  state.notices.unshift({tag, title, date:'Just now'});
+  saveState(); refresh();
+}
+function setAttendance(id, val){
+  state.attendanceToday[id] = val; saveState(); refresh();
+}
+function toggleHw(id){
+  const s = state.students.find(x=>x.id===id); s.hwDone = !s.hwDone; saveState(); refresh();
+}
+function setMarks(id, val){
+  const s = state.students.find(x=>x.id===id); s.ut2 = Math.max(0, Math.min(25, Number(val)||0)); saveState(); refresh();
+}
+</script>
+</body>
+</html>
